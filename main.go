@@ -25,7 +25,17 @@ func init() {
 }
 
 var day time.Weekday
+var day_time_set = false
 var trigger_time time.Time
+
+func hourly_day_check() {
+	for {
+		if day_time_set {
+			time.Sleep(1 * time.Second)
+			fmt.Println("Done")
+		}
+	}
+}
 
 func main() {
 	// Create a new Discord session using the provided bot token.
@@ -50,15 +60,18 @@ func main() {
 
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	hourly_day_check()
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
+	// if time.Now().Hour() ==
 
 	// Cleanly close down the Discord session.
 	dg.Close()
 }
 
 func setup_bot(message string) (time.Weekday, int) {
+
 	date_comparison := map[string]time.Weekday{
 		"Monday":    time.Monday,
 		"Tuesday":   time.Tuesday,
@@ -75,6 +88,7 @@ func setup_bot(message string) (time.Weekday, int) {
 		//executes if there is any error
 		fmt.Println(err)
 	}
+	day_time_set = true
 	return day, trigger_time
 
 }
@@ -91,6 +105,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.Contains(m.Content, "setup_bot") {
 		setup_bot(m.Content)
 		var date_string = day.String()
+		fmt.Println(trigger_time)
 		var str1 = "Bot has been configured to RollCall for " + date_string + "s"
 		s.ChannelMessageSend(m.ChannelID, str1)
 	}
